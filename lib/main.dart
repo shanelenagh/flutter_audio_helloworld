@@ -12,7 +12,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Center(
+        body: const Center(
           child: Text('Hello World!'),
         ),
         floatingActionButton: FloatingActionButton(
@@ -23,7 +23,10 @@ class MainApp extends StatelessWidget {
   }
 
   void playIt() async {
+    AudioCache.instance.prefix = "assets/audio/";
+    AudioCache.instance.loadAll([ "example_web_c-c-1.mp3" ]);
     final player = AudioPlayer();
-    await player.play(AssetSource("audio/example_web_c-c-1.mp3"));
+    player.setSource(AssetSource("example_web_c-c-1.mp3"));
+    await player.resume();
   }
 }
