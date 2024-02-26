@@ -20,3 +20,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/audio/example_web_c-c-1.mp3
+    - assets/audio/tr_cl_chirp.mp3
+    - assets/audio/tr_bogey.mp3
