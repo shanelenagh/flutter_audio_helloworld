@@ -9,44 +9,6 @@ interface class SequencePlayCompletionListner {
   void sequencePlayCompletion() { }
 }
 
-class MainApp extends StatelessWidget implements SequencePlayCompletionListner {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: const Center(
-          child: Text('Hello World!'),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: playIt,
-        ),
-      ),
-    );
-  }
-
-  void playIt() async {
-    AudioCache.instance.prefix = "assets/audio/";
-    await AudioCache.instance.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3", "tr_01.mp3", "tr_oclock.mp3", "tr_high.mp3" ]);
-
-    final chirpPlayer = AudioPlayer(), bogeyPlayer = AudioPlayer(), onePlayer = AudioPlayer(), 
-      oclockPlayer = AudioPlayer(), highPlayer = AudioPlayer();
-    chirpPlayer.setSource(AssetSource("tr_cl_chirp.mp3"));
-    bogeyPlayer.setSource(AssetSource("tr_bogey.mp3"));
-    onePlayer.setSource(AssetSource("tr_01.mp3"));
-    oclockPlayer.setSource(AssetSource("tr_oclock.mp3"));
-    highPlayer.setSource(AssetSource("tr_high.mp3"));
-
-    AudioSequencePlayer([ chirpPlayer, bogeyPlayer, onePlayer, oclockPlayer, highPlayer ], this).playAudioSequence();
-  }
-
-  @override
-  void sequencePlayCompletion() { 
-    print("Done playing sequence");
-  }
-}
-
 class AudioSequencePlayer {
   final List<AudioPlayer> _audioPlayers;
 
@@ -68,5 +30,44 @@ class AudioSequencePlayer {
 
   void playAudioSequence() {
     _audioPlayers.elementAt(0).resume();
+  }
+}
+
+class MainApp extends StatelessWidget implements SequencePlayCompletionListner {
+  const MainApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: const Center(
+          child: Text('Hello World!'),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: playIt,
+        ),
+      ),
+    );
+  }
+
+  void playIt() async {
+    AudioCache.instance.prefix = "assets/audio/";
+    await AudioCache.instance.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3", "tr_01.mp3", "tr_oclock.mp3", "tr_high.mp3" ]);
+    final chirpPlayer = await _buildLLAudio("tr_cl_chirp.mp3"), bogeyPlayer = await _buildLLAudio("tr_bogey.mp3"), onePlayer = await _buildLLAudio("tr_01.mp3"), 
+      oclockPlayer = await _buildLLAudio("tr_oclock.mp3"), highPlayer = await _buildLLAudio("tr_high.mp3");
+
+    AudioSequencePlayer([ chirpPlayer, bogeyPlayer, onePlayer, oclockPlayer, highPlayer ], this).playAudioSequence();
+  }
+
+  Future<AudioPlayer> _buildLLAudio(String assetSourceName) async {
+    final AudioPlayer ap = AudioPlayer();
+    await ap.setSource(AssetSource(assetSourceName));
+    await ap.setPlayerMode(PlayerMode.lowLatency);
+    return ap;
+  }
+
+  @override
+  void sequencePlayCompletion() { 
+    print("Done playing sequence");
   }
 }
