@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(MainApp());
 }
 
 interface class SequencePlayCompletionListner {
@@ -10,18 +10,18 @@ interface class SequencePlayCompletionListner {
 }
 
 class AudioSequencePlayer {
-  final List<AudioPlayer> _audioPlayers;
+  final List<AudioPlayer?> _audioPlayers;
 
-  AudioSequencePlayer(List<AudioPlayer> audioPlayers, [SequencePlayCompletionListner? sequenceCompletionListener ]) 
+  AudioSequencePlayer(List<AudioPlayer?> audioPlayers, [SequencePlayCompletionListner? sequenceCompletionListener ]) 
     : _audioPlayers = audioPlayers, assert(audioPlayers.isNotEmpty)
   {
     for (int i = 0; i < _audioPlayers.length; i++) {
       if (i < _audioPlayers.length-1) {
-        _audioPlayers.elementAt(i).onPlayerComplete.listen((event) {
-          _audioPlayers.elementAt(i+1).resume();
+        _audioPlayers.elementAt(i)?.onPlayerComplete.listen((event) {
+          _audioPlayers.elementAt(i+1)?.resume();
         });
       } else if (sequenceCompletionListener != null) {
-        _audioPlayers.elementAt(i).onPlayerComplete.listen((event) {
+        _audioPlayers.elementAt(i)?.onPlayerComplete.listen((event) {
           sequenceCompletionListener.sequencePlayCompletion();
         });
       }
@@ -29,34 +29,54 @@ class AudioSequencePlayer {
   }
 
   void playAudioSequence() {
-    _audioPlayers.elementAt(0).resume();
+    _audioPlayers.elementAt(0)?.resume();
   }
 }
 
-class MainApp extends StatelessWidget implements SequencePlayCompletionListner {
-  const MainApp({super.key});
+class MainApp extends StatefulWidget {
+  @override
+  _MainAppState createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> implements SequencePlayCompletionListner {
+  
+  AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
+  bool isAudioLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAudio();
+  }
+
+  void _loadAudio() async {
+    AudioCache.instance.prefix = "assets/audio/";
+    await AudioCache.instance.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3", "tr_01.mp3", "tr_oclock.mp3", "tr_high.mp3" ]);
+    _chirpPlayer = await _buildLLAudio("tr_cl_chirp.mp3");
+    _bogeyPlayer = await _buildLLAudio("tr_bogey.mp3");
+    _onePlayer = await _buildLLAudio("tr_01.mp3");
+    _oclockPlayer = await _buildLLAudio("tr_oclock.mp3");
+    _highPlayer = await _buildLLAudio("tr_high.mp3");
+    isAudioLoaded = true;
+    setState(() { });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: const Center(
-          child: Text('Hello World!'),
+        body: Center(
+          child: Text(isAudioLoaded ? "Play audio below" : "Loading audio...")
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: isAudioLoaded ? FloatingActionButton(
           onPressed: playIt,
-        ),
+        ) : null,
       ),
     );
   }
 
   void playIt() async {
-    AudioCache.instance.prefix = "assets/audio/";
-    await AudioCache.instance.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3", "tr_01.mp3", "tr_oclock.mp3", "tr_high.mp3" ]);
-    final chirpPlayer = await _buildLLAudio("tr_cl_chirp.mp3"), bogeyPlayer = await _buildLLAudio("tr_bogey.mp3"), onePlayer = await _buildLLAudio("tr_01.mp3"), 
-      oclockPlayer = await _buildLLAudio("tr_oclock.mp3"), highPlayer = await _buildLLAudio("tr_high.mp3");
-
-    AudioSequencePlayer([ chirpPlayer, bogeyPlayer, onePlayer, oclockPlayer, highPlayer ], this).playAudioSequence();
+    AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer ], this).playAudioSequence();
   }
 
   Future<AudioPlayer> _buildLLAudio(String assetSourceName) async {
