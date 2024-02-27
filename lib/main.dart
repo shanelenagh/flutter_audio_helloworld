@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() {
   runApp(const MainApp());
@@ -45,6 +46,14 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
   AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
   bool _isAudioLoaded = false;
 
+  @override
+  void initState() {
+    super.initState();
+    if (!kIsWeb) {
+      _lazyLoadAudio();
+    }
+  }
+
   Future<void> _lazyLoadAudio() async {
     if (!_isAudioLoaded) {
       AudioCache.instance.prefix = "assets/audio/";
@@ -74,7 +83,9 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
   }
 
   void playIt() async {
-    await _lazyLoadAudio();
+    if (kIsWeb) {
+      await _lazyLoadAudio();
+    }
     AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer ], this).playAudioSequence();
   }
 
