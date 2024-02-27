@@ -41,24 +41,20 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> implements SequencePlayCompletionListner {
   
   AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
-  bool isAudioLoaded = false;
+  bool _isAudioLoaded = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadAudio();
-  }
-
-  void _loadAudio() async {
-    AudioCache.instance.prefix = "assets/audio/";
-    await AudioCache.instance.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3", "tr_01.mp3", "tr_oclock.mp3", "tr_high.mp3" ]);
-    _chirpPlayer = await _buildLLAudio("tr_cl_chirp.mp3");
-    _bogeyPlayer = await _buildLLAudio("tr_bogey.mp3");
-    _onePlayer = await _buildLLAudio("tr_01.mp3");
-    _oclockPlayer = await _buildLLAudio("tr_oclock.mp3");
-    _highPlayer = await _buildLLAudio("tr_high.mp3");
-    isAudioLoaded = true;
-    setState(() { });
+  Future<void> _loadAudio() async {
+    if (!_isAudioLoaded) {
+      AudioCache.instance.prefix = "assets/audio/";
+      await AudioCache.instance.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3", "tr_01.mp3", "tr_oclock.mp3", "tr_high.mp3" ]);
+      _chirpPlayer = await _buildLLAudio("tr_cl_chirp.mp3");
+      _bogeyPlayer = await _buildLLAudio("tr_bogey.mp3");
+      _onePlayer = await _buildLLAudio("tr_01.mp3");
+      _oclockPlayer = await _buildLLAudio("tr_oclock.mp3");
+      _highPlayer = await _buildLLAudio("tr_high.mp3");
+      _isAudioLoaded = true;
+      setState(() { });
+    }
   }
 
   @override
@@ -66,16 +62,17 @@ class _MainAppState extends State<MainApp> implements SequencePlayCompletionList
     return MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Text(isAudioLoaded ? "Play audio below" : "Loading audio...")
+          child: Text(_isAudioLoaded ? "Play audio again below" : "Audio load pending user interaction...")
         ),
-        floatingActionButton: isAudioLoaded ? FloatingActionButton(
+        floatingActionButton: FloatingActionButton(
           onPressed: playIt,
-        ) : null,
+        ),
       ),
     );
   }
 
   void playIt() async {
+    await _loadAudio();
     AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer ], this).playAudioSequence();
   }
 
