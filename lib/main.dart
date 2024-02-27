@@ -73,7 +73,7 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
     return MaterialApp(
       home: Scaffold(
         body: Center(
-          child: Text(_isAudioLoaded ? "Play audio again below" : "Audio load pending user interaction...")
+          child: Text(_isAudioLoaded ? "Play audio by pushing button below" : (kIsWeb ? "Audio load pending user interaction (e.g., push button)..." : "Audio loading..."))
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: playIt,
