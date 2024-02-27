@@ -6,8 +6,8 @@ void main() {
   runApp(const MainApp());
 }
 
-interface class PlayAudioSequenceCompletionListner {
-  void sequencePlayCompletion() { }
+abstract class PlayAudioSequenceCompletionListner {
+  void sequencePlayCompletion();
 }
 
 class AudioSequencePlayer {
