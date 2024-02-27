@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 void main() {
-  runApp(MainApp());
+  runApp(const MainApp());
 }
 
 interface class PlayAudioSequenceCompletionListner {
@@ -34,11 +34,13 @@ class AudioSequencePlayer {
 }
 
 class MainApp extends StatefulWidget {
+  const MainApp({super.key});
+  
   @override
-  _MainAppState createState() => _MainAppState();
+  MainAppState createState() => MainAppState();
 }
 
-class _MainAppState extends State<MainApp> implements PlayAudioSequenceCompletionListner {
+class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletionListner {
   
   AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
   bool _isAudioLoaded = false;
