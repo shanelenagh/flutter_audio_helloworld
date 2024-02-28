@@ -18,11 +18,11 @@ class AudioSequencePlayer {
   {
     for (int i = 0; i < _audioPlayers.length; i++) {
       if (i < _audioPlayers.length-1) {
-        _audioPlayers.elementAt(i)?.onPlayerComplete.listen((event) {
-          _audioPlayers.elementAt(i+1)?.resume();
+        _audioPlayers[i]?.onPlayerComplete.listen((event) {
+          _audioPlayers[i+1]?.resume();
         });
       } else if (sequenceCompletionListener != null) {
-        _audioPlayers.elementAt(i)?.onPlayerComplete.listen((event) {
+        _audioPlayers[i]?.onPlayerComplete.listen((event) {
           sequenceCompletionListener.sequencePlayCompletion();
         });
       }
@@ -30,7 +30,7 @@ class AudioSequencePlayer {
   }
 
   void playAudioSequence() {
-    _audioPlayers.elementAt(0)?.resume();
+    _audioPlayers[0]?.resume();
   }
 }
 
@@ -45,6 +45,7 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
   
   AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
   bool _isAudioLoaded = false;
+  static const double kPlayRate = 1.25;
 
   @override
   void initState() {
@@ -93,6 +94,7 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
   Future<AudioPlayer> _buildLowLatencyAudio(String assetSourceName) async {
     final AudioPlayer ap = AudioPlayer();
     await ap.setSource(AssetSource(assetSourceName));
+    await ap.setPlaybackRate(kPlayRate);
     await ap.setPlayerMode(PlayerMode.lowLatency);
     return ap;
   }
