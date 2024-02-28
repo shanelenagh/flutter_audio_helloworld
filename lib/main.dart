@@ -77,6 +77,7 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: playIt,
+          child: const Text("Play Audio")
         ),
       ),
     );
