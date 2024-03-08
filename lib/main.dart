@@ -4,23 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+const double _kPlayRate = 1.5;
+
 void main() {
   runApp(const MainApp());
 }
 
-abstract class PlayAudioSequenceCompletionListner {
-  void sequencePlayCompletion();
-}
-
 class AudioSequencePlayer {
   final List<AudioPlayer?> _audioPlayers;
-  final Completer _completer;
+  final Completer _completer = Completer();
   StreamSubscription<void>? _lastAudioPlayerSubscription;
-  final PlayAudioSequenceCompletionListner? _sequenceCompletionListener;
   int _seqIndex = 0;
 
-  AudioSequencePlayer(List<AudioPlayer?> audioPlayers, [PlayAudioSequenceCompletionListner? sequenceCompletionListener ]) 
-    : _audioPlayers = audioPlayers, _completer = Completer(), _sequenceCompletionListener = sequenceCompletionListener, assert(audioPlayers.isNotEmpty)
+  AudioSequencePlayer(List<AudioPlayer?> audioPlayers) 
+    : _audioPlayers = audioPlayers, assert(audioPlayers.isNotEmpty)
   {
     _lastAudioPlayerSubscription = _audioPlayers[0]?.onPlayerComplete.listen(_handleNextSeqAudio);      
   }
@@ -31,9 +28,6 @@ class AudioSequencePlayer {
       _lastAudioPlayerSubscription = _audioPlayers[_seqIndex]?.onPlayerComplete.listen(_handleNextSeqAudio);
       _audioPlayers[_seqIndex++]?.resume();
     } else {        
-      if (_sequenceCompletionListener != null) {
-        _sequenceCompletionListener.sequencePlayCompletion();
-      }
       _completer.complete();
     }
   }
@@ -51,14 +45,10 @@ class MainApp extends StatefulWidget {
   MainAppState createState() => MainAppState();
 }
 
-class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletionListner {
+class MainAppState extends State<MainApp> {
   
   AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
   bool _isAudioLoaded = false;
-<<<<<<< HEAD
-=======
-  static const double kPlayRate = 1;
->>>>>>> 0b7309d5a1f173a688196d0cc35620518449115c
 
   @override
   void initState() {
@@ -101,26 +91,18 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
     if (kIsWeb) {
       await _lazyLoadAudio();
     }
-<<<<<<< HEAD
-    AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer ], this).playAudioSequence();
-=======
-    AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer, _onePlayer ], this).playAudioSequence();
->>>>>>> 0b7309d5a1f173a688196d0cc35620518449115c
+    AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer, _onePlayer ]).playAudioSequence().then((nothing) {
+      print("Done playing sequence");
+    });
   }
 
   Future<AudioPlayer> _buildLowLatencyAudio(String assetSourceName) async {
     final AudioPlayer ap = AudioPlayer();
     await ap.setSource(AssetSource(assetSourceName));
-<<<<<<< HEAD
-=======
-    await ap.setPlaybackRate(kPlayRate);  // Quirk: web loses this after first run--what else is it losing?
->>>>>>> 0b7309d5a1f173a688196d0cc35620518449115c
+    await ap.setPlaybackRate(_kPlayRate);  // Quirk: web loses this after first run--what else is it losing?
     await ap.setPlayerMode(PlayerMode.lowLatency);
+    await ap.setReleaseMode(ReleaseMode.stop);
     return ap;
   }
 
-  @override
-  void sequencePlayCompletion() { 
-    print("Done playing sequence");
-  }
 }
