@@ -99,10 +99,9 @@ class MainAppState extends State<MainApp> {
   Future<AudioPlayer> _buildLowLatencyAudio(String assetSourceName) async {
     final AudioPlayer ap = AudioPlayer();
     await ap.setSource(AssetSource(assetSourceName));
-    await ap.setPlaybackRate(_kPlayRate);  // Quirk: web loses this after first run--what else is it losing?
+    await ap.setPlaybackRate(_kPlayRate); 
     await ap.setPlayerMode(PlayerMode.lowLatency);
     await ap.setReleaseMode(ReleaseMode.stop);
     return ap;
   }
-
 }
