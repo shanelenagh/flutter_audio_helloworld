@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -12,25 +14,33 @@ abstract class PlayAudioSequenceCompletionListner {
 
 class AudioSequencePlayer {
   final List<AudioPlayer?> _audioPlayers;
+  final Completer _completer;
+  StreamSubscription<void>? _lastAudioPlayerSubscription;
+  final PlayAudioSequenceCompletionListner? _sequenceCompletionListener;
+  int _seqIndex = 0;
 
   AudioSequencePlayer(List<AudioPlayer?> audioPlayers, [PlayAudioSequenceCompletionListner? sequenceCompletionListener ]) 
-    : _audioPlayers = audioPlayers, assert(audioPlayers.isNotEmpty)
+    : _audioPlayers = audioPlayers, _completer = Completer(), _sequenceCompletionListener = sequenceCompletionListener, assert(audioPlayers.isNotEmpty)
   {
-    for (int i = 0; i < _audioPlayers.length; i++) {
-      if (i < _audioPlayers.length-1) {
-        _audioPlayers.elementAt(i)?.onPlayerComplete.listen((event) {
-          _audioPlayers.elementAt(i+1)?.resume();
-        });
-      } else if (sequenceCompletionListener != null) {
-        _audioPlayers.elementAt(i)?.onPlayerComplete.listen((event) {
-          sequenceCompletionListener.sequencePlayCompletion();
-        });
+    _lastAudioPlayerSubscription = _audioPlayers[0]?.onPlayerComplete.listen(_handleNextSeqAudio);      
+  }
+
+  void _handleNextSeqAudio(event) {
+    _lastAudioPlayerSubscription?.cancel();
+    if (_seqIndex < _audioPlayers.length) {
+      _lastAudioPlayerSubscription = _audioPlayers[_seqIndex]?.onPlayerComplete.listen(_handleNextSeqAudio);
+      _audioPlayers[_seqIndex++]?.resume();
+    } else {        
+      if (_sequenceCompletionListener != null) {
+        _sequenceCompletionListener.sequencePlayCompletion();
       }
+      _completer.complete();
     }
   }
 
-  void playAudioSequence() {
-    _audioPlayers.elementAt(0)?.resume();
+  Future<void> playAudioSequence() {
+    _audioPlayers[_seqIndex++]?.resume();
+    return _completer.future;
   }
 }
 
@@ -45,6 +55,10 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
   
   AudioPlayer? _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer;
   bool _isAudioLoaded = false;
+<<<<<<< HEAD
+=======
+  static const double kPlayRate = 1;
+>>>>>>> 0b7309d5a1f173a688196d0cc35620518449115c
 
   @override
   void initState() {
@@ -77,6 +91,7 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: playIt,
+          child: const Text("Play Audio")
         ),
       ),
     );
@@ -86,12 +101,20 @@ class MainAppState extends State<MainApp> implements PlayAudioSequenceCompletion
     if (kIsWeb) {
       await _lazyLoadAudio();
     }
+<<<<<<< HEAD
     AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer ], this).playAudioSequence();
+=======
+    AudioSequencePlayer([ _chirpPlayer, _bogeyPlayer, _onePlayer, _oclockPlayer, _highPlayer, _onePlayer ], this).playAudioSequence();
+>>>>>>> 0b7309d5a1f173a688196d0cc35620518449115c
   }
 
   Future<AudioPlayer> _buildLowLatencyAudio(String assetSourceName) async {
     final AudioPlayer ap = AudioPlayer();
     await ap.setSource(AssetSource(assetSourceName));
+<<<<<<< HEAD
+=======
+    await ap.setPlaybackRate(kPlayRate);  // Quirk: web loses this after first run--what else is it losing?
+>>>>>>> 0b7309d5a1f173a688196d0cc35620518449115c
     await ap.setPlayerMode(PlayerMode.lowLatency);
     return ap;
   }
