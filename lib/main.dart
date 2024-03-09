@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -21,12 +23,40 @@ class MainApp extends StatefulWidget {
 
 class MainAppState extends State<MainApp> {
 
+  AudioPlayer _chirpPlayer = new AudioPlayer();
+  AudioPlayer _bogeyPlayer = new AudioPlayer();
+  int i = 0;
+
+  @override
+  void initState() {
+    super.initState();
+  
+    AudioCache cache = AudioCache(prefix:  "assets/audio/");
+    cache.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3" ]).then((value) {
+      _log("CACHE LOADED");
+      _chirpPlayer.audioCache = cache;
+      _bogeyPlayer.audioCache = cache;
+      _chirpPlayer.setSourceAsset("tr_cl_chirp.mp3").then((value) {
+        _log("chirp source set");
+        _chirpPlayer.setPlaybackRate(_kPlayRate).then((value) {
+          _log("chirp set rate");
+        });
+      });
+      _bogeyPlayer.setSourceAsset("tr_bogey.mp3").then((value) {
+        _log("bogey source set");
+        _chirpPlayer.setPlaybackRate(_kPlayRate).then((value) {
+          _log("bogey set rate");
+        });        
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: const Text("Play audio by pushing button below")
+        body: const Center(
+          child: Text("Play audio by pushing button below")
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: playIt,
@@ -40,27 +70,12 @@ class MainAppState extends State<MainApp> {
     if (kIsWeb) {
       //await _lazyLoadAudio();
     }
-    AudioCache cache = AudioCache(prefix:  "assets/audio/");
-    await cache.loadAll([ "tr_cl_chirp.mp3", "tr_bogey.mp3" ]);
-    AudioPlayer player = AudioPlayer();
-    player.audioCache = cache;
-    await player.setReleaseMode(ReleaseMode.stop);
-    await player.setPlayerMode(PlayerMode.lowLatency);
-    await player.setPlaybackRate(1.5);
-    _log("chirp started");
-    bool playedBogey = false;
-    player.onPlayerComplete.listen((event) async {
-      _log("sound done");
-      if (!playedBogey) {
-        playedBogey = true;
-        await player.setSourceAsset("tr_cl_chirp.mp3");
-        await player.setPlaybackRate(_kPlayRate);
-        player.resume();
-      }
+    late StreamSubscription sub;
+    sub =_chirpPlayer.onPlayerComplete.listen((event) async {
+      _log("chrip done ${i++}");
+      sub.cancel();
+      _bogeyPlayer.resume();
     });
-    await player.setSourceAsset("tr_bogey.mp3");
-    await player.setPlaybackRate(_kPlayRate);
-    await player.setPlayerMode(PlayerMode.lowLatency);
-    player.resume();
+    _chirpPlayer.resume();
   }
 }
